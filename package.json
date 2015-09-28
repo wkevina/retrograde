@@ -1,0 +1,27 @@
+{
+  "name": "retrograde",
+  "version": "0.0.1",
+  "description": "Toy that renders apparent motion of orbiting objects",
+  "main": "index.html",
+  "dependencies": {
+    "mathjs": "^2.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wkevina/retrograde.git"
+  },
+  "keywords": [
+    "celestial",
+    "mechanics",
+    "math"
+  ],
+  "author": "Kevin Ward",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wkevina/retrograde/issues"
+  },
+  "homepage": "https://github.com/wkevina/retrograde#readme"
+}
