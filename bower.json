@@ -1,0 +1,23 @@
+{
+  "name": "retrograde",
+  "version": "0.0.1",
+  "homepage": "https://github.com/wkevina/retrograde",
+  "authors": [
+    "(Kevin Ward <antiomiae@gmail.com>)"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "mathjs": "~2.3.0"
+  }
+}
