@@ -34,8 +34,9 @@ copyTask('img');
 copyTask('lib');
 
 gulp.task('clean-build', function(done) {
-    del(dir.build);
-    done();
+    del(dir.build).then(function(){
+        done();
+    });
 });
 
 gulp.task('copy-static', function(callback) {
