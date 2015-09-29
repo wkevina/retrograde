@@ -5,7 +5,8 @@
   "main": "index.html",
   "dependencies": {
     "es6-micro-loader": "^0.2.1",
-    "mathjs": "^2.3.0"
+    "mathjs": "^2.3.0",
+    "systemjs": "^0.19.3"
   },
   "devDependencies": {
     "del": "^2.0.2",
@@ -18,7 +19,8 @@
     "gulp-plumber": "^1.0.1",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-util": "^3.0.6",
-    "run-sequence": "^1.1.4"
+    "run-sequence": "^1.1.4",
+    "wiredep": "^2.2.2"
   },
   "scripts": {},
   "repository": {
