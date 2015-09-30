@@ -16,8 +16,9 @@ var dir = {
     sourceDir: './src',
     source: ['./src/**/*.js', '!./app/{lib,lib/**}'],
     lib: ['!*.json',
-          'node_modules/systemjs/dist/system.src.js',
-          'node_modules/mathjs/dist/math.js'
+          'node_modules/systemjs/dist/system.*',
+          'node_modules/mathjs/dist/math*',
+          'node_modules/babel-core/browser-polyfill.min.js*'
 	 ],
     libOut: './dist/lib',
     build: './dist',
