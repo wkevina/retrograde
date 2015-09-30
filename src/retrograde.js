@@ -3,9 +3,7 @@
 import math from "lib/math.js";
 import {orientationMatrix} from "transform";
 
-export {Orbit};
-
-class Orbit {
+export class Orbit {
     constructor(radius, elevation, azimuth) {
         this._radius = radius;
         this._elevation = elevation;
@@ -20,9 +18,20 @@ class Orbit {
         let angle = t * 2 * math.PI,
             p = [this._radius * math.cos(angle),
                  this._radius * math.sin(angle),
-                 0];
+                 0,
+                 1];
 
-        return math.multiply(this._orientation, p);
+        return math.multiply(this._orientation, p)._data;
+    }
+
+    plot(resolution=100) {
+        let a = [];
+
+        for (let i = 0; i < resolution; ++i) {
+            a.push(this.point(i / resolution));
+        }
+
+        return a;
     }
 };
 
