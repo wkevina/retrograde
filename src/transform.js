@@ -1,5 +1,5 @@
 
-import math from "lib/math.js";
+import {vec3, mat4} from "lib/gl-matrix.js";
 
 /*
  Matrix that rotates x-y plane to be normal with spherical unit vector
@@ -9,18 +9,18 @@ import math from "lib/math.js";
 export function orientationMatrix(elevation, azimuth) {
     let theta = elevation,
         phi = azimuth,
-        M = math,
+        M = Math,
         sin_theta = M.sin(theta),
         cos_theta = M.cos(theta),
         sin_phi = M.sin(phi),
         cos_phi = M.cos(phi);
 
-    return math.matrix([
-        [cos_phi * cos_theta, -sin_phi, cos_phi * sin_theta, 0],
-        [sin_phi * cos_theta,  cos_phi, sin_phi * sin_theta, 0],
-        [         -sin_theta,        0,           cos_theta, 0],
-        [                  0,        0,                   0, 1]
-    ]);
+    return mat4.clone(
+        [cos_phi * cos_theta, sin_phi * cos_theta, -sin_theta, 0,
+                    -sin_phi,             cos_phi,          0, 0,
+         cos_phi * sin_theta, sin_phi * sin_theta,  cos_theta, 0,
+                           0,                   0,          0, 1]
+    );
 }
 
 /*
@@ -39,43 +39,26 @@ export function orientationMatrix(elevation, azimuth) {
  --                                                                                        --
  */
 export function ortho(left, right, top, bottom, near, far) {
-    let m = math.eye(4,4);
-
-    m.subset(math.index(0,0), 2 / (right - left));
-    m.subset(math.index(1,1), 2 / (top - bottom));
-    m.subset(math.index(2,2), -2 / (far - near));
-
-    m.subset(math.index(0,3), -(right + left) / (right - left));
-    m.subset(math.index(1,3), -(top + bottom) / (top - bottom));
-    m.subset(math.index(2,3), -(far + near) / (far - near));
-
-    return m;
+    return mat4.ortho(mat4.create(), left, right, bottom, top, near, far);
 }
 
 export function screenMatrix(width, height) {
-    let m = math.eye(4,4);
+    let m = mat4.create();
 
-    m.subset(math.index(0, 0), width / 2);
-    m.subset(math.index(1, 1), height / 2);
-
-    m.subset(math.index(0, 3), width / 2);
-    m.subset(math.index(1, 3), height / 2);
+    m[0] = width / 2;
+    m[5] = height / 2;
+    m[12] = width / 2;
+    m[13] = height / 2;
 
     return m;
 }
 
 export function arrayMultiply(matrix, arr) {
-    return arr.map((a) => math.multiply(matrix, a)._data);
+    return arr.map((a) => vec3.transformMat4(vec3.create(), a, matrix));
 }
 
 export function translate(x, y, z) {
-    let m = math.eye(4,4);
-
-    m.subset(math.index(0, 3), x);
-    m.subset(math.index(1, 3), y);
-    m.subset(math.index(2, 3), z);
-
-    return m;
+    return mat4.fromTranslation(mat4.create(), [x, y, z]);
 }
 
 export default {

@@ -1,6 +1,6 @@
-/* uses mathjs for coolness */
 
-import math from "lib/math.js";
+import {vec3} from "lib/gl-matrix.js";
+
 import {orientationMatrix} from "transform";
 
 export class Orbit {
@@ -15,13 +15,15 @@ export class Orbit {
     }
 
     point(t) {
-        let angle = t * 2 * math.PI,
-            p = [this._radius * math.cos(angle),
-                 this._radius * math.sin(angle),
-                 0,
-                 1];
+        let angle = angleReduce(t * 2 * Math.PI),
 
-        return math.multiply(this._orientation, p)._data;
+            p = vec3.fromValues(
+                this._radius * Math.cos(angle),
+                this._radius * Math.sin(angle),
+                0
+            );
+
+        return vec3.transformMat4(p, p, this._orientation);
     }
 
     plot(resolution=100) {
@@ -36,11 +38,12 @@ export class Orbit {
 };
 
 function angleReduce(angle) {
-    let PI2 = math.PI * 2;
+    let PI2 = Math.PI * 2;
     while (angle > PI2) {
         angle -= PI2;
     }
-    while (angle < PI2) {
+    while (angle < 0) {
         angle += PI2;
     }
+    return angle;
 }

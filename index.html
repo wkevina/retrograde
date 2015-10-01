@@ -1,22 +1,23 @@
 <!DOCTYPE html>
 <html>
-  <head>
-  </head>
-  <body>
+    <head>
+    </head>
+    <body>
 
-    <script src="lib/system.js"></script>
-    <script src="lib/browser-polyfill.min.js"></script>
-    <script src="lib/math.min.js"></script>
-    <!-- bower:js -->
-    <!-- endbower -->
-    <script src="all.js"></script>
-    <script type="text/javascript">
-      System.config({
-          map: {
-              "lib/math.js": "lib/math.min.js"
-          }
-      });
-      System.import('test');
-    </script>
-  </body>
+        <script src="lib/system.js"></script>
+        <script src="lib/browser-polyfill.min.js"></script>
+        <script src="lib/math.min.js"></script>
+        <!-- bower:js -->
+        <!-- endbower -->
+        <script src="all.js"></script>
+        <script type="text/javascript">
+         System.config({
+             map: {
+                 "lib/math.js": "lib/math.min.js",
+                 "lib/gl-matrix.js": "lib/gl-matrix-min.js"
+             }
+         });
+         System.import('test');
+        </script>
+    </body>
 </html>

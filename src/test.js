@@ -1,40 +1,17 @@
 
 import transform from "transform";
 import {Orbit} from "retrograde";
-import math from "lib/math.js";
-
-
-let ei = [1, 0, 0, 1],
-    ej = [0, 1, 0, 1],
-    ek = [0, 0, 1, 1],
-
-    rotTheta = transform.orientationMatrix(math.PI / 2, 0),
-
-    rotPhi = transform.orientationMatrix(0, math.PI / 2),
-
-    mult = math.multiply;
-
-console.log("Theta: expect [0, 0, -1]: ", mult(rotTheta, ei)._data);
-
-console.log("Theta: expect [0, 1, 0]: ", mult(rotTheta, ej)._data);
-
-console.log("Theta: expect [1, 0, 0]: ", mult(rotTheta, ek)._data);
-
-console.log("Phi: expect [0, 1, 0]: ", mult(rotPhi, ei)._data);
-
-console.log("Phi: expect [-1, 0, 0]: ", mult(rotPhi, ej)._data);
-
-console.log("Phi: expect [0, 0, 1]: ", mult(rotPhi, ek)._data);
+import {mat4,vec3} from "lib/gl-matrix.js";
 
 let o = new Orbit(225, 0, 0),
 
     p = o.plot(100),
 
-    projection = transform.ortho(-250, 250, 250, -250, 250, -250),
+    projection = transform.ortho(-350, 350, 350, -350, 350, -350),
 
     screen = transform.screenMatrix(500, 500),
 
-    view = math.multiply(screen, projection);
+    view = mat4.multiply(mat4.create(), screen, projection);
 
 console.log(p);
 
@@ -46,23 +23,30 @@ document.body.appendChild(canvas);
 canvas.width = 500;
 canvas.height = 500;
 
-let theta = -math.pi * 0.25,
+let theta = Math.PI / 16,
     phi = 0,
+    speed = 1 * Math.PI / 1000,
     index = 0,
+    start = null,
     lastPath = null,
-    camera = transform.orientationMatrix(math.PI / 2, 0);
-    //camera = math.eye(4,4);
+    camera = mat4.fromXRotation(mat4.create(), Math.PI / 2);
 
-let render = function() {
+let render = function(time_stamp=0) {
 
-    //ctx.fillStyle = "#FFF";
-    //ctx.fillRect(0, 0, 500, 500);
+    if (!start) {
+        start = time_stamp;
+    }
 
-    let model = transform.orientationMatrix(theta, phi),
+    let delta_t = time_stamp - start;
+    start = time_stamp;
 
-        points = transform.arrayMultiply(
-            math.multiply(view, math.multiply(camera, model)),
-            subset(p, index, 99)),
+    let model = transform.orientationMatrix(theta, phi);
+
+    let mvp = mat4.multiply(mat4.create(), camera, model);
+    mvp = mat4.multiply(mvp, view, mvp);
+
+    let points = transform.arrayMultiply(mvp,
+                                         subset(p, index, 99)),
 
         path = pointsToPath(points);
 
@@ -80,8 +64,7 @@ let render = function() {
 
     lastPath = path;
 
-    //theta += 0.005;
-    phi += 0.005;
+    phi += speed * delta_t;
 
     index = (index + 1) % p.length;
 
