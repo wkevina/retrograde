@@ -4,7 +4,7 @@
   "description": "Toy that renders apparent motion of orbiting objects",
   "main": "index.html",
   "dependencies": {
-    "es6-micro-loader": "^0.2.1",
+    "gl-matrix": "^2.3.1",
     "mathjs": "^2.3.0",
     "systemjs": "^0.19.3"
   },
