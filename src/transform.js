@@ -9,22 +9,17 @@ import math from "lib/math.js";
 export function orientationMatrix(elevation, azimuth) {
     let theta = elevation,
         phi = azimuth,
-        M = Math,
+        M = math,
         sin_theta = M.sin(theta),
         cos_theta = M.cos(theta),
         sin_phi = M.sin(phi),
-        cos_phi = M.cos(phi),
-        sin_pi2_theta = M.sin(M.PI / 2 + theta),
-        cos_pi2_theta = M.cos(M.PI / 2 + theta),
-        sin_pi2_phi = M.sin(M.PI / 2 + phi),
-        cos_pi2_phi = M.cos(M.PI / 2 + phi);
-
+        cos_phi = M.cos(phi);
 
     return math.matrix([
-        [sin_pi2_theta * cos_phi, sin_pi2_theta * cos_pi2_phi, sin_theta * cos_phi, 0],
-        [sin_pi2_theta * sin_phi, sin_pi2_theta * sin_pi2_phi, sin_theta * sin_phi, 0],
-        [cos_pi2_theta,           cos_pi2_theta,               cos_theta          , 0],
-        [            0,                       0,            0,                      1]
+        [cos_phi * cos_theta, -sin_phi, cos_phi * sin_theta, 0],
+        [sin_phi * cos_theta,  cos_phi, sin_phi * sin_theta, 0],
+        [         -sin_theta,        0,           cos_theta, 0],
+        [                  0,        0,                   0, 1]
     ]);
 }
 
