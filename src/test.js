@@ -3,19 +3,25 @@ import transform from "transform";
 import {Orbit} from "retrograde";
 import {mat4,vec3} from "lib/gl-matrix.js";
 
-let o = new Orbit(225, 0, 0),
+let o = new Orbit(225, 0, 0), // make orbit
 
-    p = o.plot(100),
+    p = o.plot(200), // plot points (really just a circle)
 
-    projection = transform.ortho(-350, 350, 350, -350, 350, -350),
+    ortho = transform.ortho(-350, 350, 350, -350, 350, -350),
 
-    screen = transform.screenMatrix(500, 500),
+    perspective = mat4.perspective(
+        mat4.create(),
+        Math.PI / 4, // vertical field of view (radians)
+        1, // aspect ratio
+        -1, // near bound
+        1 // far bound
+    ),
 
-    view = mat4.multiply(mat4.create(), screen, projection);
+    screen = transform.screenMatrix(500, 500), // transforms NDC to screen coordinates
 
-console.log(p);
+    view = mat4.multiply(mat4.create(), screen, perspective),
 
-let canvas = document.createElement("canvas"),
+    canvas = document.createElement("canvas"),
 
     ctx = canvas.getContext("2d");
 
@@ -25,11 +31,12 @@ canvas.height = 500;
 
 let theta = Math.PI / 16,
     phi = 0,
-    speed = 1 * Math.PI / 1000,
+    speed = 0.5 * Math.PI / 1000,
     index = 0,
     start = null,
-    lastPath = null,
-    camera = mat4.fromXRotation(mat4.create(), Math.PI / 2);
+    rotate = mat4.fromXRotation(mat4.create(), Math.PI / 2),
+    translate = mat4.fromTranslation(mat4.create(), [0, 0, 1000]),
+    camera = mat4.multiply(mat4.create(), translate, rotate);
 
 let render = function(time_stamp=0) {
 
@@ -45,28 +52,24 @@ let render = function(time_stamp=0) {
     let mvp = mat4.multiply(mat4.create(), camera, model);
     mvp = mat4.multiply(mvp, view, mvp);
 
-    let points = transform.arrayMultiply(mvp,
-                                         subset(p, index, 99)),
+    let points = transform.arrayMultiply(
+        mvp,
+        subset(p, Math.floor(index), 199)
+    ),
 
         path = pointsToPath(points);
 
-    if (lastPath) {
-        ctx.strokeStyle = "rgb(255,255,255)";
-        ctx.lineWidth = 4;
-        ctx.lineCap = "round";
-        ctx.stroke(lastPath);
-    }
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,500,500);
 
-    ctx.strokeStyle = "rgb(0,0,0)";
+    ctx.strokeStyle = "#DDD";
     ctx.lineWidth = 1;
     ctx.lineCap = "butt";
     ctx.stroke(path);
 
-    lastPath = path;
+    phi -= speed * delta_t;
 
-    phi += speed * delta_t;
-
-    index = (index + 1) % p.length;
+    index = (index + 2) % p.length;
 
     window.requestAnimationFrame(render);
 };
