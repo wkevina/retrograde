@@ -3,18 +3,14 @@ import transform from "transform";
 import {Orbit} from "retrograde";
 import {mat4,vec3} from "lib/gl-matrix.js";
 
-let o = new Orbit(225, 0, 0), // make orbit
-
-    p = o.plot(200), // plot points (really just a circle)
-
-    ortho = transform.ortho(-350, 350, 350, -350, 350, -350),
+let ortho = transform.ortho(-350, 350, 350, -350, 350, -350),
 
     perspective = mat4.perspective(
         mat4.create(),
         Math.PI / 4, // vertical field of view (radians)
         1, // aspect ratio
-        -1, // near bound
-        1 // far bound
+        -100, // near bound
+        100 // far bound
     ),
 
     screen = transform.screenMatrix(500, 500), // transforms NDC to screen coordinates
@@ -34,9 +30,10 @@ let theta = Math.PI / 16,
     speed = 0.5 * Math.PI / 1000,
     index = 0,
     start = null,
-    rotate = mat4.fromXRotation(mat4.create(), Math.PI / 2),
-    translate = mat4.fromTranslation(mat4.create(), [0, 0, 1000]),
-    camera = mat4.multiply(mat4.create(), translate, rotate);
+    camera = mat4.create(),
+    observationPoint = [50, 0, -100],
+    eye = [500, 0, 0],
+    up = [0, 0, 1];
 
 let render = function(time_stamp=0) {
 
@@ -44,28 +41,31 @@ let render = function(time_stamp=0) {
         start = time_stamp;
     }
 
-    let delta_t = time_stamp - start;
+    let o = new Orbit(225, theta, phi), // make orbit
+
+        p = o.plot(200), // plot points (really just a circle)
+
+        delta_t = time_stamp - start;
+
     start = time_stamp;
 
-    let model = transform.orientationMatrix(theta, phi);
+    //    let model = transform.orientationMatrix(theta, phi);
+    let model = mat4.create();
+
+    camera = mat4.lookAt(camera, eye, [0,0,0], up);
 
     let mvp = mat4.multiply(mat4.create(), camera, model);
     mvp = mat4.multiply(mvp, view, mvp);
-
-    let points = transform.arrayMultiply(
-        mvp,
-        subset(p, Math.floor(index), 199)
-    ),
-
-        path = pointsToPath(points);
 
     ctx.fillStyle = "#000";
     ctx.fillRect(0,0,500,500);
 
     ctx.strokeStyle = "#DDD";
     ctx.lineWidth = 1;
-    ctx.lineCap = "butt";
-    ctx.stroke(path);
+
+    renderLines(ctx, mvp, subset(p, 0, 199));
+
+    renderLines(ctx, mvp, lineBetween(observationPoint, o.nearest(observationPoint)));
 
     phi -= speed * delta_t;
 
@@ -97,4 +97,18 @@ function pointsToPath(points) {
     }
 
     return path;
+}
+
+function renderLines(ctx, mvp, points) {
+    let transformedPoints = transform.arrayMultiply(
+        mvp,
+        points
+    ),
+        path = pointsToPath(transformedPoints);
+
+    ctx.stroke(path);
+}
+
+function lineBetween(start, end) {
+    return [start, end];
 }
