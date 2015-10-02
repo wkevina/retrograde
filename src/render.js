@@ -32,7 +32,7 @@ class GridBox extends T.LineSegments {
             vert.push(V3(stepX * x - w2, -h2, d2));
         }
 
-        for (let y = 0; y < divisions; ++y) {
+        for (let y = 0; y <= divisions; ++y) {
             vert.push(V3(w2, stepY * y - h2, -d2));
             vert.push(V3(-w2, stepY * y - h2, -d2));
 
@@ -46,7 +46,7 @@ class GridBox extends T.LineSegments {
             vert.push(V3(-w2, stepY * y - h2, d2));
         }
 
-        for (let z = 0; z < divisions; ++z) {
+        for (let z = 0; z <= divisions; ++z) {
             vert.push(V3(w2, h2, stepZ * z - d2));
             vert.push(V3(-w2, h2, stepZ * z - d2));
 
