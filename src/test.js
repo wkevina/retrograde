@@ -1,7 +1,7 @@
 
 import transform from "transform";
-import {Orbit} from "retrograde";
-import {mat4,vec3} from "lib/gl-matrix.js";
+import {Orbit, Observer} from "retrograde";
+import {mat4, vec3} from "lib/gl-matrix.js";
 
 let ortho = transform.ortho(-350, 350, 350, -350, 350, -350),
 
@@ -33,7 +33,8 @@ let theta = Math.PI / 16,
     camera = mat4.create(),
     observationPoint = [50, 0, -100],
     eye = [500, 0, 0],
-    up = [0, 0, 1];
+    up = [0, 0, 1],
+    planet = new Observer(50, Math.PI / 4, 0, -Math.PI / 4);
 
 let render = function(time_stamp=0) {
 
@@ -52,7 +53,9 @@ let render = function(time_stamp=0) {
     //    let model = transform.orientationMatrix(theta, phi);
     let model = mat4.create();
 
-    camera = mat4.lookAt(camera, eye, [0,0,0], up);
+    eye = planet.point(time_stamp);
+//    let nearest =
+    camera = mat4.lookAt(camera, eye, o.nearest(eye), up);
 
     let mvp = mat4.multiply(mat4.create(), camera, model);
     mvp = mat4.multiply(mvp, view, mvp);
