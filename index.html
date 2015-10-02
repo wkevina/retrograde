@@ -17,7 +17,9 @@
                  "lib/gl-matrix.js": "lib/gl-matrix-min.js"
              }
          });
-         System.import('test');
+         System.import('render').then(function(render) {
+             render;
+         });
         </script>
     </body>
 </html>

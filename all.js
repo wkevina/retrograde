@@ -1,9 +1,279 @@
-System.register("retrograde", ["lib/gl-matrix.js", "transform"], function (_export) {
+System.register("render", ["transform", "retrograde", "lib/gl-matrix.js", "lib/three.js"], function (_export) {
     "use strict";
 
-    var vec3, mat4, orientationMatrix, Orbit;
+    var transform, Orbit, OrbitMesh, Observer, mat4, vec3, T, GridBox, WIDTH, HEIGHT, scene, camera, renderer, orbit, material, orbitMesh, gridMesh, theta, phi, speed, start, eye, up, planet;
+
+    var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+    function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+    function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+    function render() {
+        var time_stamp = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+
+        requestAnimationFrame(render);
+
+        if (!start) {
+            start = time_stamp;
+        }
+
+        var delta_t = time_stamp - start;
+        start = time_stamp;
+
+        orbit = new Orbit(225, theta, phi);
+        orbitMesh.updateOrbit(orbit);
+
+        var observationPoint = planet.point(time_stamp / 1000);
+
+        camera.position.copy(V3(observationPoint));
+        //camera.position.copy(V3(eye));
+        camera.up.copy(up);
+        camera.lookAt(V3(orbit.nearest(observationPoint)));
+        // camera.lookAt(V3([0,0,0]));
+
+        phi -= speed * delta_t;
+
+        renderer.render(scene, camera);
+    }
+
+    function V3(a, b, c) {
+        if (arguments.length == 3) return new T.Vector3(a, b, c);
+        return new T.Vector3(a[0], a[1], a[2]);
+    }
+
+    // let ortho = transform.ortho(-350, 350, 350, -350, 350, -350),
+
+    //     perspective = mat4.perspective(
+    //         mat4.create(),
+    //         Math.PI / 4, // vertical field of view (radians)
+    //         1, // aspect ratio
+    //         -100, // near bound
+    //         100 // far bound
+    //     ),
+
+    //     screen = transform.screenMatrix(500, 500), // transforms NDC to screen coordinates
+
+    //     view = mat4.multiply(mat4.create(), screen, perspective),
+
+    //     canvas = document.createElement("canvas"),
+
+    //     ctx = canvas.getContext("2d");
+
+    // document.body.appendChild(canvas);
+    // canvas.width = 500;
+    // canvas.height = 500;
+
+    // let theta = Math.PI / 16,
+    //     phi = 0,
+    //     speed = 0.5 * Math.PI / 1000,
+    //     index = 0,
+    //     start = null,
+    //     camera = mat4.create(),
+    //     observationPoint = [50, 0, -100],
+    //     eye = [500, 0, 0],
+    //     up = [0, 0, 1],
+    //     planet = new Observer(50, Math.PI / 4, 0, -Math.PI / 4);
+
+    // let render = function(time_stamp=0) {
+
+    //     if (!start) {
+    //         start = time_stamp;
+    //     }
+
+    //     let o = new Orbit(225, theta, phi), // make orbit
+
+    //         p = o.plot(200), // plot points (really just a circle)
+
+    //         delta_t = time_stamp - start;
+
+    //     start = time_stamp;
+
+    //     //    let model = transform.orientationMatrix(theta, phi);
+    //     let model = mat4.create();
+
+    //     eye = planet.point(time_stamp);
+    // //    let nearest =
+    //     camera = mat4.lookAt(camera, eye, o.nearest(eye), up);
+
+    //     let mvp = mat4.multiply(mat4.create(), camera, model);
+    //     mvp = mat4.multiply(mvp, view, mvp);
+
+    //     ctx.fillStyle = "#000";
+    //     ctx.fillRect(0,0,500,500);
+
+    //     ctx.strokeStyle = "#DDD";
+    //     ctx.lineWidth = 1;
+
+    //     renderLines(ctx, mvp, subset(p, 0, 199));
+
+    //     renderLines(ctx, mvp, lineBetween(observationPoint, o.nearest(observationPoint)));
+
+    //     phi -= speed * delta_t;
+
+    //     index = (index + 2) % p.length;
+
+    //     window.requestAnimationFrame(render);
+    // };
+
+    // render();
+
+    // function subset(arr, index, samples) {
+    //     if (samples >= arr.length)
+    //         return arr;
+
+    //     let sub = arr.slice(index);
+
+    //     if (sub.length < samples)
+    //         return sub.concat(arr.slice(0, samples - sub.length));
+    //     else
+    //         return sub.slice(0, samples);
+    // }
+
+    // function pointsToPath(points) {
+    //     let path = new Path2D();
+    //     path.moveTo(points[0][0], points[0][1]);
+
+    //     for (let i = 1; i < points.length; ++i) {
+    //         path.lineTo(points[i][0], points[i][1]);
+    //     }
+
+    //     return path;
+    // }
+
+    // function renderLines(ctx, mvp, points) {
+    //     let transformedPoints = transform.arrayMultiply(
+    //         mvp,
+    //         points
+    //     ),
+    //         path = pointsToPath(transformedPoints);
+
+    //     ctx.stroke(path);
+    // }
+
+    // function lineBetween(start, end) {
+    //     return [start, end];
+    // }
+    return {
+        setters: [function (_transform) {
+            transform = _transform["default"];
+        }, function (_retrograde) {
+            Orbit = _retrograde.Orbit;
+            OrbitMesh = _retrograde.OrbitMesh;
+            Observer = _retrograde.Observer;
+        }, function (_libGlMatrixJs) {
+            mat4 = _libGlMatrixJs.mat4;
+            vec3 = _libGlMatrixJs.vec3;
+        }, function (_libThreeJs) {
+            T = _libThreeJs["default"];
+        }],
+        execute: function () {
+            GridBox = (function (_T$LineSegments) {
+                _inherits(GridBox, _T$LineSegments);
+
+                function GridBox(width, height, depth, divisions) {
+                    _classCallCheck(this, GridBox);
+
+                    _get(Object.getPrototypeOf(GridBox.prototype), "constructor", this).call(this, undefined, new T.LineBasicMaterial({ color: 0xFFFFFF }));
+
+                    var vert = this.geometry.vertices;
+
+                    var stepX = width / divisions,
+                        stepY = height / divisions,
+                        stepZ = depth / divisions,
+                        w2 = width / 2,
+                        h2 = height / 2,
+                        d2 = depth / 2;
+
+                    for (var x = 0; x <= divisions; ++x) {
+                        vert.push(V3(stepX * x - w2, h2, -d2));
+                        vert.push(V3(stepX * x - w2, -h2, -d2));
+
+                        vert.push(V3(stepX * x - w2, h2, d2));
+                        vert.push(V3(stepX * x - w2, -h2, d2));
+
+                        vert.push(V3(stepX * x - w2, h2, -d2));
+                        vert.push(V3(stepX * x - w2, h2, d2));
+
+                        vert.push(V3(stepX * x - w2, -h2, -d2));
+                        vert.push(V3(stepX * x - w2, -h2, d2));
+                    }
+
+                    for (var y = 0; y < divisions; ++y) {
+                        vert.push(V3(w2, stepY * y - h2, -d2));
+                        vert.push(V3(-w2, stepY * y - h2, -d2));
+
+                        vert.push(V3(w2, stepY * y - h2, d2));
+                        vert.push(V3(-w2, stepY * y - h2, d2));
+
+                        vert.push(V3(w2, stepY * y - h2, -d2));
+                        vert.push(V3(w2, stepY * y - h2, d2));
+
+                        vert.push(V3(-w2, stepY * y - h2, -d2));
+                        vert.push(V3(-w2, stepY * y - h2, d2));
+                    }
+
+                    for (var z = 0; z < divisions; ++z) {
+                        vert.push(V3(w2, h2, stepZ * z - d2));
+                        vert.push(V3(-w2, h2, stepZ * z - d2));
+
+                        vert.push(V3(w2, -h2, stepZ * z - d2));
+                        vert.push(V3(-w2, -h2, stepZ * z - d2));
+
+                        vert.push(V3(w2, -h2, stepZ * z - d2));
+                        vert.push(V3(w2, h2, stepZ * z - d2));
+
+                        vert.push(V3(-w2, -h2, stepZ * z - d2));
+                        vert.push(V3(-w2, h2, stepZ * z - d2));
+                    }
+
+                    this.geometry.verticesNeedUpdate = true;
+                }
+
+                return GridBox;
+            })(T.LineSegments);
+
+            ;
+
+            WIDTH = 500;
+            HEIGHT = 500;
+            scene = new T.Scene();
+            camera = new T.PerspectiveCamera(Math.PI / 4 * 360, WIDTH / HEIGHT, 0.1, 100000);
+            renderer = new T.WebGLRenderer();
+
+            renderer.setSize(WIDTH, HEIGHT);
+
+            document.body.appendChild(renderer.domElement);
+
+            orbit = new Orbit(225, 0, 0);
+            material = new T.LineBasicMaterial({ color: 0xFFFFFF });
+            orbitMesh = new OrbitMesh(orbit, material, 100);
+            gridMesh = new GridBox(500, 500, 500, 10);
+
+            scene.add(orbitMesh);
+            scene.add(gridMesh);
+
+            theta = Math.PI / 16;
+            phi = 0;
+            speed = 0.5 * Math.PI / 1000;
+            start = undefined;
+            eye = [500, 0, 0];
+            up = new T.Vector3(0, 0, -1);
+            planet = new Observer(50, Math.PI / 4, 0, -Math.PI / 5);
+            requestAnimationFrame(render);
+        }
+    };
+});
+System.register("retrograde", ["lib/gl-matrix.js", "transform", "lib/three.js"], function (_export) {
+    "use strict";
+
+    var vec3, mat4, orientationMatrix, THREE, Orbit, OrbitMesh, Observer;
+
+    var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
     var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+    function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
     function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -23,6 +293,8 @@ System.register("retrograde", ["lib/gl-matrix.js", "transform"], function (_expo
             mat4 = _libGlMatrixJs.mat4;
         }, function (_transform) {
             orientationMatrix = _transform.orientationMatrix;
+        }, function (_libThreeJs) {
+            THREE = _libThreeJs["default"];
         }],
         execute: function () {
             Orbit = (function () {
@@ -91,13 +363,94 @@ System.register("retrograde", ["lib/gl-matrix.js", "transform"], function (_expo
             _export("Orbit", Orbit);
 
             ;
+
+            OrbitMesh = (function (_THREE$Line) {
+                _inherits(OrbitMesh, _THREE$Line);
+
+                function OrbitMesh(orbit, material) {
+                    var resolution = arguments.length <= 2 || arguments[2] === undefined ? 20 : arguments[2];
+
+                    _classCallCheck(this, OrbitMesh);
+
+                    _get(Object.getPrototypeOf(OrbitMesh.prototype), "constructor", this).call(this, undefined, material);
+
+                    this._resolution = resolution;
+
+                    this.updateOrbit(orbit);
+                }
+
+                _createClass(OrbitMesh, [{
+                    key: "updateOrbit",
+                    value: function updateOrbit(orbit) {
+                        var points = orbit.plot(this._resolution),
+                            p0 = points[0];
+
+                        this.geometry.vertices = points.map(function (p) {
+                            return new THREE.Vector3(p[0], p[1], p[2]);
+                        });
+
+                        this.geometry.vertices.push(new THREE.Vector3(p0[0], p0[1], p0[2]));
+
+                        this.geometry.verticesNeedUpdate = true;
+                    }
+                }]);
+
+                return OrbitMesh;
+            })(THREE.Line);
+
+            _export("OrbitMesh", OrbitMesh);
+
+            ;
+
+            /**
+             * @class Observer
+             * Represents the position of an observer on a spherical rotating body centered at 0,0,0
+             *
+             * @param {number} radius Radius of spherical body
+             * @param {number} elevation Angle between line through observation point to center of body and plane through equator
+             * @param {number} azimuth Angle between line through observation point and center and x-z plane
+             * @param {number} speed Angular speed in radians/second
+            */
+
+            Observer = (function () {
+                function Observer(radius, elevation, azimuth, speed) {
+                    _classCallCheck(this, Observer);
+
+                    this._radius = radius;
+                    this._elevation = elevation;
+                    this._azimuth = azimuth;
+                    this._speed = speed;
+                }
+
+                /**
+                 * Returns location of observation point at time t
+                 *
+                 * @param {number} t Time in seconds
+                 */
+
+                _createClass(Observer, [{
+                    key: "point",
+                    value: function point(t) {
+                        var r_xy = this._radius * Math.cos(this._elevation),
+                            p = vec3.fromValues(r_xy * Math.cos(this._azimuth), r_xy * Math.sin(this._azimuth), this._radius * Math.sin(this._elevation));
+
+                        return vec3.rotateZ(p, p, [0, 0, 0], this._speed * t);
+                    }
+                }]);
+
+                return Observer;
+            })();
+
+            _export("Observer", Observer);
+
+            ;
         }
     };
 });
-System.register("test", ["transform", "retrograde", "lib/gl-matrix.js"], function (_export) {
+System.register("test", ["transform", "retrograde", "lib/gl-matrix.js", "lib/three.js"], function (_export) {
     "use strict";
 
-    var transform, Orbit, mat4, vec3, ortho, perspective, screen, view, canvas, ctx, theta, phi, speed, index, start, camera, observationPoint, eye, up, render;
+    var transform, Orbit, Observer, mat4, vec3, THREE, ortho, perspective, screen, view, canvas, ctx, theta, phi, speed, index, start, camera, observationPoint, eye, up, planet, render;
 
     function subset(arr, index, samples) {
         if (samples >= arr.length) return arr;
@@ -133,9 +486,12 @@ System.register("test", ["transform", "retrograde", "lib/gl-matrix.js"], functio
             transform = _transform["default"];
         }, function (_retrograde) {
             Orbit = _retrograde.Orbit;
+            Observer = _retrograde.Observer;
         }, function (_libGlMatrixJs) {
             mat4 = _libGlMatrixJs.mat4;
             vec3 = _libGlMatrixJs.vec3;
+        }, function (_libThreeJs) {
+            THREE = _libThreeJs["default"];
         }],
         execute: function () {
             ortho = transform.ortho(-350, 350, 350, -350, 350, -350);
@@ -162,6 +518,7 @@ System.register("test", ["transform", "retrograde", "lib/gl-matrix.js"], functio
             observationPoint = [50, 0, -100];
             eye = [500, 0, 0];
             up = [0, 0, 1];
+            planet = new Observer(50, Math.PI / 4, 0, -Math.PI / 4);
 
             render = function render() {
                 var time_stamp = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
@@ -183,7 +540,9 @@ System.register("test", ["transform", "retrograde", "lib/gl-matrix.js"], functio
                 //    let model = transform.orientationMatrix(theta, phi);
                 var model = mat4.create();
 
-                camera = mat4.lookAt(camera, eye, [0, 0, 0], up);
+                eye = planet.point(time_stamp);
+                //    let nearest =
+                camera = mat4.lookAt(camera, eye, o.nearest(eye), up);
 
                 var mvp = mat4.multiply(mat4.create(), camera, model);
                 mvp = mat4.multiply(mvp, view, mvp);
