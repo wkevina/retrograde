@@ -2,6 +2,7 @@
 import transform from "transform";
 import {Orbit, Observer} from "retrograde";
 import {mat4, vec3} from "lib/gl-matrix.js";
+import THREE from "lib/three.js";
 
 let ortho = transform.ortho(-350, 350, 350, -350, 350, -350),
 

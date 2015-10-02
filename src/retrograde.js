@@ -3,6 +3,8 @@ import {vec3, mat4} from "lib/gl-matrix.js";
 
 import {orientationMatrix} from "transform";
 
+import THREE from "lib/three.js";
+
 export class Orbit {
     constructor(radius, elevation, azimuth) {
         this._radius = radius;
@@ -59,6 +61,28 @@ export class Orbit {
 
         // Return vector projected back into orbit's transformed space
         return vec3.transformMat4(p_prime, p_prime, t);
+    }
+};
+
+export class OrbitMesh extends THREE.Line {
+    constructor(orbit, material, resolution=20) {
+        super(undefined, material);
+
+        this._resolution = resolution;
+
+        this.updateOrbit(orbit);
+    }
+
+    updateOrbit(orbit) {
+        let points = orbit.plot(this._resolution),
+
+            p0 = points[0];
+
+        this.geometry.vertices = points.map((p) => new THREE.Vector3(p[0], p[1], p[2]));
+
+        this.geometry.vertices.push(new THREE.Vector3(p0[0], p0[1], p0[2]));
+
+        this.geometry.verticesNeedUpdate = true;
     }
 };
 

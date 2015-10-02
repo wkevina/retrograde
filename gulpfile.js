@@ -19,7 +19,8 @@ var dir = {
           'node_modules/systemjs/dist/system.*',
           'node_modules/mathjs/dist/math*',
           'node_modules/babel-core/browser-polyfill.min.js*',
-          'node_modules/gl-matrix/dist/gl-matrix-min.js'
+          'node_modules/gl-matrix/dist/gl-matrix-min.js',
+          'node_modules/three/three.js'
 	 ],
     libOut: './dist/lib',
     build: './dist',

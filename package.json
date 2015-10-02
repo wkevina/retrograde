@@ -6,7 +6,8 @@
   "dependencies": {
     "gl-matrix": "^2.3.1",
     "mathjs": "^2.3.0",
-    "systemjs": "^0.19.3"
+    "systemjs": "^0.19.3",
+    "three": "^0.72.0"
   },
   "devDependencies": {
     "del": "^2.0.2",
