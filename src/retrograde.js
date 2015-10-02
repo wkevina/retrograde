@@ -62,6 +62,41 @@ export class Orbit {
     }
 };
 
+/**
+ * @class Observer
+ * Represents the position of an observer on a spherical rotating body centered at 0,0,0
+ *
+ * @param {number} radius Radius of spherical body
+ * @param {number} elevation Angle between line through observation point to center of body and plane through equator
+ * @param {number} azimuth Angle between line through observation point and center and x-z plane
+ * @param {number} speed Angular speed in radians/second
+*/
+export class Observer {
+    constructor(radius, elevation, azimuth, speed) {
+        this._radius = radius;
+        this._elevation = elevation;
+        this._azimuth = azimuth;
+        this._speed = speed;
+    }
+
+    /**
+     * Returns location of observation point at time t
+     *
+     * @param {number} t Time in seconds
+     */
+    point(t) {
+        let r_xy = this._radius * Math.cos(this._elevation),
+
+            p = vec3.fromValues(
+                r_xy * Math.cos(this._azimuth),
+                r_xy * Math.sin(this._azimuth),
+                this._radius * Math.sin(this._elevation)
+            );
+
+        return vec3.rotateZ(p, p, [0,0,0], this._speed * t);
+    }
+};
+
 function angleReduce(angle) {
     let PI2 = Math.PI * 2;
     while (angle > PI2) {
