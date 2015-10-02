@@ -1,5 +1,5 @@
 
-import {vec3} from "lib/gl-matrix.js";
+import {vec3, mat4} from "lib/gl-matrix.js";
 
 import {orientationMatrix} from "transform";
 
@@ -34,6 +34,31 @@ export class Orbit {
         }
 
         return a;
+    }
+
+    /* Returns vector that points from source point to nearest point on orbit */
+    nearest(source) {
+        let t = this._orientation,
+
+            t_inverse = mat4.invert(mat4.create(), t),
+
+            // Transform source vector into orbit's local space
+            source_prime;
+
+        if (vec3.squaredLength(source) != 0) {
+            source_prime = vec3.transformMat4(vec3.create(), source, t_inverse);
+        } else {
+            source_prime = [1, 0, 0];
+        }
+
+        // Project source_prime onto x-y place
+        let projection = vec3.fromValues(source_prime[0], source_prime[1], 0),
+
+            // Nearest point is simply at distance r from origin in direction of projection
+            p_prime = vec3.scale(projection, vec3.normalize(projection, projection), this._radius);
+
+        // Return vector projected back into orbit's transformed space
+        return vec3.transformMat4(p_prime, p_prime, t);
     }
 };
 
