@@ -81,6 +81,13 @@ gulp.task('build-dev', function(cb) {
     runSeq('clean-build', 'copy-static', ['compileApp', 'bower'], cb);
 });
 
+/* Build and copy files to outside directory */
+gulp.task('export', ['build-dev'], function() {
+    gulp.src(dir.build + '/**/*')
+        .pipe(gulp.dest('../retrograde-build'));
+});
+
+
 gulp.task('default', function(cb) {
     runSeq('build-dev', ['watch', 'connect'], cb);
 });
