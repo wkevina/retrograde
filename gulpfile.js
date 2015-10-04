@@ -74,7 +74,7 @@ gulp.task('connect', function() {
 	root: dir.build,
 	livereload: false,
 	host: 'localhost',
-        port: 8081
+        port: 8082
     });
 });
 
