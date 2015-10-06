@@ -1,9 +1,24 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+        <style>
+         body, html {
+             height: 100%;
+             width:100%;
+             padding: 0;
+             margin: 0;
+         }
+
+         canvas {
+             position: absolute;
+             width: 100%;
+             height: 100%;
+         }
+        </style>
     </head>
     <body>
-
         <script src="lib/system.js"></script>
         <script src="lib/browser-polyfill.min.js"></script>
         <script src="lib/math.min.js"></script>
@@ -14,11 +29,12 @@
          System.config({
              map: {
                  "lib/math.js": "lib/math.min.js",
-                 "lib/gl-matrix.js": "lib/gl-matrix-min.js"
+                 "lib/gl-matrix.js": "lib/gl-matrix-min.js",
+                 "lib/underscore.js": "lib/underscore-min.js"
              }
          });
-         System.import('render').then(function(render) {
-             render;
+         document.addEventListener("DOMContentLoaded", function() {
+             System.import('render');
          });
         </script>
     </body>
