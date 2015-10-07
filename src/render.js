@@ -82,23 +82,32 @@ document.body.appendChild(canvas);
 
 let resize = function() {
 
-    let WIDTH = canvas.clientWidth,
-    HEIGHT = canvas.clientHeight;
+    const WIDTH = canvas.clientWidth,
+        HEIGHT = canvas.clientHeight;
 
-    renderer.setPixelRatio(window.devicePixelRatio);
+    if (resize.old_w === undefined) {
+        resize.old_w = 0;
+        resize.old_h = 0;
+    }
 
-    renderer.setSize(WIDTH, HEIGHT, false);
+    if (WIDTH != resize.old_w || HEIGHT != resize.old_h) {
 
-    camera.aspect = canvas.width/canvas.height;
+        renderer.setPixelRatio(window.devicePixelRatio);
 
-    camera.updateProjectionMatrix();
+        renderer.setSize(WIDTH, HEIGHT, false);
+
+        camera.aspect = canvas.width/canvas.height;
+
+        camera.updateProjectionMatrix();
+    }
+
+    resize.old_w = WIDTH;
+    resize.old_h = HEIGHT;
 };
 
 renderer.setClearColor(0xFF0000);
 
-renderer.setPixelRatio(window.devicePixelRatio);
-
-renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+resize();
 
 let orbit = new Orbit(225, 0, 0),
 
