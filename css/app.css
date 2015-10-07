@@ -15,8 +15,15 @@ canvas {
 #controls {
     position:absolute;
     z-index:10;
+    width: 100%;
+    bottom: 0;
 }
 
-.row {
-    display: flex;
+#controls .columns p {
+    margin-bottom: 0;
+    color: white;
+}
+
+.range-slider {
+    margin: 0.625rem;
 }
