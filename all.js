@@ -1,7 +1,7 @@
-System.register("render", ["transform", "retrograde", "lib/gl-matrix.js", "lib/three.js"], function (_export) {
+System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "retrograde"], function (_export) {
     "use strict";
 
-    var transform, Orbit, OrbitMesh, Observer, mat4, vec3, T, GridBox, WIDTH, HEIGHT, scene, camera, renderer, orbit, material, orbitMesh, gridMesh, theta, phi, speed, start, eye, up, planet;
+    var T, mat4, vec3, transform, Orbit, OrbitMesh, Observer, GridBox, scene, camera, renderer, canvas, resize, orbit, material, orbitMesh, gridMesh, theta, phi, speed, start, eye, up, planet;
 
     var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
@@ -13,6 +13,8 @@ System.register("render", ["transform", "retrograde", "lib/gl-matrix.js", "lib/t
         var time_stamp = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
 
         requestAnimationFrame(render);
+
+        resize();
 
         if (!start) {
             start = time_stamp;
@@ -41,131 +43,18 @@ System.register("render", ["transform", "retrograde", "lib/gl-matrix.js", "lib/t
         if (arguments.length == 3) return new T.Vector3(a, b, c);
         return new T.Vector3(a[0], a[1], a[2]);
     }
-
-    // let ortho = transform.ortho(-350, 350, 350, -350, 350, -350),
-
-    //     perspective = mat4.perspective(
-    //         mat4.create(),
-    //         Math.PI / 4, // vertical field of view (radians)
-    //         1, // aspect ratio
-    //         -100, // near bound
-    //         100 // far bound
-    //     ),
-
-    //     screen = transform.screenMatrix(500, 500), // transforms NDC to screen coordinates
-
-    //     view = mat4.multiply(mat4.create(), screen, perspective),
-
-    //     canvas = document.createElement("canvas"),
-
-    //     ctx = canvas.getContext("2d");
-
-    // document.body.appendChild(canvas);
-    // canvas.width = 500;
-    // canvas.height = 500;
-
-    // let theta = Math.PI / 16,
-    //     phi = 0,
-    //     speed = 0.5 * Math.PI / 1000,
-    //     index = 0,
-    //     start = null,
-    //     camera = mat4.create(),
-    //     observationPoint = [50, 0, -100],
-    //     eye = [500, 0, 0],
-    //     up = [0, 0, 1],
-    //     planet = new Observer(50, Math.PI / 4, 0, -Math.PI / 4);
-
-    // let render = function(time_stamp=0) {
-
-    //     if (!start) {
-    //         start = time_stamp;
-    //     }
-
-    //     let o = new Orbit(225, theta, phi), // make orbit
-
-    //         p = o.plot(200), // plot points (really just a circle)
-
-    //         delta_t = time_stamp - start;
-
-    //     start = time_stamp;
-
-    //     //    let model = transform.orientationMatrix(theta, phi);
-    //     let model = mat4.create();
-
-    //     eye = planet.point(time_stamp);
-    // //    let nearest =
-    //     camera = mat4.lookAt(camera, eye, o.nearest(eye), up);
-
-    //     let mvp = mat4.multiply(mat4.create(), camera, model);
-    //     mvp = mat4.multiply(mvp, view, mvp);
-
-    //     ctx.fillStyle = "#000";
-    //     ctx.fillRect(0,0,500,500);
-
-    //     ctx.strokeStyle = "#DDD";
-    //     ctx.lineWidth = 1;
-
-    //     renderLines(ctx, mvp, subset(p, 0, 199));
-
-    //     renderLines(ctx, mvp, lineBetween(observationPoint, o.nearest(observationPoint)));
-
-    //     phi -= speed * delta_t;
-
-    //     index = (index + 2) % p.length;
-
-    //     window.requestAnimationFrame(render);
-    // };
-
-    // render();
-
-    // function subset(arr, index, samples) {
-    //     if (samples >= arr.length)
-    //         return arr;
-
-    //     let sub = arr.slice(index);
-
-    //     if (sub.length < samples)
-    //         return sub.concat(arr.slice(0, samples - sub.length));
-    //     else
-    //         return sub.slice(0, samples);
-    // }
-
-    // function pointsToPath(points) {
-    //     let path = new Path2D();
-    //     path.moveTo(points[0][0], points[0][1]);
-
-    //     for (let i = 1; i < points.length; ++i) {
-    //         path.lineTo(points[i][0], points[i][1]);
-    //     }
-
-    //     return path;
-    // }
-
-    // function renderLines(ctx, mvp, points) {
-    //     let transformedPoints = transform.arrayMultiply(
-    //         mvp,
-    //         points
-    //     ),
-    //         path = pointsToPath(transformedPoints);
-
-    //     ctx.stroke(path);
-    // }
-
-    // function lineBetween(start, end) {
-    //     return [start, end];
-    // }
     return {
-        setters: [function (_transform) {
+        setters: [function (_libThreeJs) {
+            T = _libThreeJs["default"];
+        }, function (_libGlMatrixJs) {
+            mat4 = _libGlMatrixJs.mat4;
+            vec3 = _libGlMatrixJs.vec3;
+        }, function (_transform) {
             transform = _transform["default"];
         }, function (_retrograde) {
             Orbit = _retrograde.Orbit;
             OrbitMesh = _retrograde.OrbitMesh;
             Observer = _retrograde.Observer;
-        }, function (_libGlMatrixJs) {
-            mat4 = _libGlMatrixJs.mat4;
-            vec3 = _libGlMatrixJs.vec3;
-        }, function (_libThreeJs) {
-            T = _libThreeJs["default"];
         }],
         execute: function () {
             GridBox = (function (_T$LineSegments) {
@@ -199,7 +88,7 @@ System.register("render", ["transform", "retrograde", "lib/gl-matrix.js", "lib/t
                         vert.push(V3(stepX * x - w2, -h2, d2));
                     }
 
-                    for (var y = 0; y < divisions; ++y) {
+                    for (var y = 0; y <= divisions; ++y) {
                         vert.push(V3(w2, stepY * y - h2, -d2));
                         vert.push(V3(-w2, stepY * y - h2, -d2));
 
@@ -213,7 +102,7 @@ System.register("render", ["transform", "retrograde", "lib/gl-matrix.js", "lib/t
                         vert.push(V3(-w2, stepY * y - h2, d2));
                     }
 
-                    for (var z = 0; z < divisions; ++z) {
+                    for (var z = 0; z <= divisions; ++z) {
                         vert.push(V3(w2, h2, stepZ * z - d2));
                         vert.push(V3(-w2, h2, stepZ * z - d2));
 
@@ -235,15 +124,41 @@ System.register("render", ["transform", "retrograde", "lib/gl-matrix.js", "lib/t
 
             ;
 
-            WIDTH = 500;
-            HEIGHT = 500;
             scene = new T.Scene();
-            camera = new T.PerspectiveCamera(Math.PI / 4 * 360, WIDTH / HEIGHT, 0.1, 100000);
-            renderer = new T.WebGLRenderer();
+            camera = new T.PerspectiveCamera(Math.PI / 4 * 360, 1, 0.1, 100000);
+            renderer = new T.WebGLRenderer({ antialias: true });
+            canvas = renderer.domElement;
 
-            renderer.setSize(WIDTH, HEIGHT);
+            document.body.appendChild(canvas);
 
-            document.body.appendChild(renderer.domElement);
+            resize = function resize() {
+
+                var WIDTH = canvas.clientWidth,
+                    HEIGHT = canvas.clientHeight;
+
+                if (resize.old_w === undefined) {
+                    resize.old_w = 0;
+                    resize.old_h = 0;
+                }
+
+                if (WIDTH != resize.old_w || HEIGHT != resize.old_h) {
+
+                    renderer.setPixelRatio(window.devicePixelRatio);
+
+                    renderer.setSize(WIDTH, HEIGHT, false);
+
+                    camera.aspect = canvas.width / canvas.height;
+
+                    camera.updateProjectionMatrix();
+                }
+
+                resize.old_w = WIDTH;
+                resize.old_h = HEIGHT;
+            };
+
+            renderer.setClearColor(0xFF0000);
+
+            resize();
 
             orbit = new Orbit(225, 0, 0);
             material = new T.LineBasicMaterial({ color: 0xFFFFFF });
@@ -259,7 +174,7 @@ System.register("render", ["transform", "retrograde", "lib/gl-matrix.js", "lib/t
             start = undefined;
             eye = [500, 0, 0];
             up = new T.Vector3(0, 0, -1);
-            planet = new Observer(50, Math.PI / 4, 0, -Math.PI / 5);
+            planet = new Observer(25, Math.PI / 4, 0, -Math.PI / 5);
             requestAnimationFrame(render);
         }
     };
