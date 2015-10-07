@@ -17,11 +17,13 @@ var dir = {
     source: ['./src/**/*.js', '!./app/{lib,lib/**}'],
     lib: ['!*.json',
           'node_modules/systemjs/dist/system.*',
-          'node_modules/mathjs/dist/math*',
           'node_modules/babel-core/browser-polyfill.min.js*',
           'node_modules/gl-matrix/dist/gl-matrix-min.js',
-          'node_modules/three/three.js'
+          'node_modules/three/three.js',
+          'bower_components/**/*'
 	 ],
+    css: 'css/**/*',
+    cssOut: 'dist/css',
     libOut: './dist/lib',
     build: './dist',
     targetAppJs: 'app.js',
@@ -35,6 +37,7 @@ var copyTask = require('./copyTask')(staticCopyTasks, dir, dir.build);
 copyTask('index');
 copyTask('img');
 copyTask('lib');
+copyTask('css');
 
 gulp.task('clean-build', function(done) {
     del(dir.build).then(function(){
@@ -101,7 +104,8 @@ gulp.task('bower', function() {
 	    fileTypes: {
 		html: {
 		    replace: {
-			js: '<script src="lib/{{filePath}}"></script>'
+			js: '<script type="text/javascript" src="lib/{{filePath}}"></script>',
+                        css:'<link rel="stylesheet" href="lib/{{filePath}}" />'
 		    }
 		}
 	    }
