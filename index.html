@@ -3,27 +3,77 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
-        <style>
-         body, html {
-             height: 100%;
-             width:100%;
-             padding: 0;
-             margin: 0;
-         }
 
-         canvas {
-             position: absolute;
-             width: 100%;
-             height: 100%;
-         }
-        </style>
+        <!-- bower:css -->
+        <link rel="stylesheet" href="lib/foundation/css/foundation.min.css" />
+        <link rel="stylesheet" href="lib/foundation/css/normalize.min.css" />
+        <!-- endbower -->
+
+        <link rel="stylesheet" href="css/app.css" />
+
     </head>
     <body>
+        <div id="controls">
+            <div class="row"><div class="columns">
+                <p>Camera angle</p>
+            </div></div>
+            <div class="row">
+                <div class="small-9 medium-5 columns">
+                    <div id="elevation"
+                         class="range-slider round"
+                         data-slider
+                         data-options="start:-90; end:90; display_selector: #elevation-output">
+
+                        <span class="range-slider-handle" role="slider"></span>
+                        <span class="range-slider-active-segment"></span>
+                    </div>
+                </div>
+                <div class="small-3 medium-2 columns end">
+                    <input type="number" id="elevation-output" value="0" />
+                </div>
+            </div>
+            <div class="row"><div class="columns">
+                <p>Speed</p>
+            </div></div>
+            <div class="row">
+                <div class="small-9 medium-5 columns">
+                    <div id="speed"
+                         class="range-slider round"
+                         data-slider
+                         data-options="start:-90; end:90; display_selector: #speed-output">
+
+                        <span class="range-slider-handle" role="slider"></span>
+                        <span class="range-slider-active-segment"></span>
+                    </div>
+                </div>
+                <div class="small-3 medium-2 columns end">
+                    <input type="number" id="speed-output" value="0" />
+                </div>
+            </div>
+        </div>
+
+
+
+
         <script src="lib/system.js"></script>
         <script src="lib/browser-polyfill.min.js"></script>
-        <script src="lib/math.min.js"></script>
+
+
         <!-- bower:js -->
+        <script type="text/javascript" src="lib/modernizr/modernizr.js"></script>
+        <script type="text/javascript" src="lib/jquery/dist/jquery.js"></script>
+        <script type="text/javascript" src="lib/fastclick/lib/fastclick.js"></script>
+        <script type="text/javascript" src="lib/jquery.cookie/jquery.cookie.js"></script>
+        <script type="text/javascript" src="lib/jquery-placeholder/jquery.placeholder.js"></script>
+        <script type="text/javascript" src="lib/foundation/js/foundation.js"></script>
         <!-- endbower -->
+
+
+        <script>
+         $(document).foundation();
+        </script>
+
+
         <script src="all.js"></script>
         <script type="text/javascript">
          System.config({

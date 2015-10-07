@@ -1,3 +1,38 @@
+System.register("demo", [], function (_export) {
+  "use strict";
+
+  var Demo;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  return {
+    setters: [],
+    execute: function () {
+      Demo = function Demo() {
+        _classCallCheck(this, Demo);
+      };
+    }
+  };
+});
+System.register("input", [], function (_export) {
+    "use strict";
+
+    var SliderTracker;
+
+    function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+    return {
+        setters: [],
+        execute: function () {
+            SliderTracker = function SliderTracker(selector, callback) {
+                _classCallCheck(this, SliderTracker);
+
+                this.rangeElement = document.querySelector(selector);
+                this.callback = callback;
+            };
+        }
+    };
+});
 System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "retrograde"], function (_export) {
     "use strict";
 
