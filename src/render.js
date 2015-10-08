@@ -124,7 +124,7 @@ let scene = new T.Scene(),
 
 document.body.appendChild(canvas);
 
-mapView.position = [500, 500, 250];
+mapView.position = [500, 500, -250];
 mapView.lookAt([0, 0, 0]);
 
 renderer.autoClear = false;
@@ -142,7 +142,7 @@ let orbit = new Orbit(225, 0, 0),
     gridMesh = new GridBox(500, 500, 500, 10);
 
 scene.add(orbitMesh);
-scene.add(gridMesh);
+//scene.add(gridMesh);
 
 let theta = Math.PI / 16,
     phi = 0,
@@ -198,7 +198,7 @@ function render(time_stamp=0) {
 
     renderer.render(scene, camera);
 
-    mapView.render();
+    mapView.render(planet._angle);
 
     phi -= speed * delta_t;
 }
