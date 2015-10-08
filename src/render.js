@@ -6,6 +6,7 @@ import transform from "transform";
 import {Orbit, OrbitMesh, Observer} from "retrograde";
 
 import {SliderTracker} from "input";
+import {MapView} from "scene";
 
 class GridBox extends T.LineSegments {
     constructor(width, height, depth, divisions) {
@@ -78,34 +79,55 @@ let scene = new T.Scene(),
 
     renderer = new T.WebGLRenderer({antialias: true}),
 
-    canvas = renderer.domElement;
+    canvas = renderer.domElement,
+
+    mapView = new MapView(renderer, 750, 750, 0, 0, 200, 200),
+
+    resize = function() {
+
+        const WIDTH = canvas.clientWidth,
+              HEIGHT = canvas.clientHeight;
+
+        if (resize.old_w === undefined) {
+            resize.old_w = 0;
+            resize.old_h = 0;
+        }
+
+        const controlDim = Math.min(WIDTH, HEIGHT)*0.2;
+
+        mapView.x = 0;
+        mapView.y = HEIGHT - controlDim;
+        mapView.width = controlDim;
+        mapView.height = controlDim;
+
+        if (WIDTH != resize.old_w || HEIGHT != resize.old_h) {
+
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            renderer.setSize(WIDTH, HEIGHT, false);
+
+            camera.aspect = canvas.width/canvas.height;
+
+            camera.updateProjectionMatrix();
+        }
+
+        resize.old_w = WIDTH;
+        resize.old_h = HEIGHT;
+    },
+
+    resetViewport = function() {
+        const WIDTH = canvas.clientWidth,
+              HEIGHT = canvas.clientHeight;
+
+        renderer.setViewport(0, 0, WIDTH, HEIGHT);
+    };
 
 document.body.appendChild(canvas);
 
-let resize = function() {
+mapView.position = [500, 500, 250];
+mapView.lookAt([0, 0, 0]);
 
-    const WIDTH = canvas.clientWidth,
-        HEIGHT = canvas.clientHeight;
-
-    if (resize.old_w === undefined) {
-        resize.old_w = 0;
-        resize.old_h = 0;
-    }
-
-    if (WIDTH != resize.old_w || HEIGHT != resize.old_h) {
-
-        renderer.setPixelRatio(window.devicePixelRatio);
-
-        renderer.setSize(WIDTH, HEIGHT, false);
-
-        camera.aspect = canvas.width/canvas.height;
-
-        camera.updateProjectionMatrix();
-    }
-
-    resize.old_w = WIDTH;
-    resize.old_h = HEIGHT;
-};
+renderer.autoClear = false;
 
 renderer.setClearColor(0xFF0000);
 
@@ -135,10 +157,17 @@ let theta = Math.PI / 16,
         cameraElevationTarget = elev * Math.PI / 180;
     });
 
+mapView.observer = planet;
+mapView.orbit = orbit;
+
 function render(time_stamp=0) {
     requestAnimationFrame(render);
 
     resize();
+
+    renderer.clear();
+
+    resetViewport();
 
     if (!start) {
         start = time_stamp;
@@ -149,8 +178,9 @@ function render(time_stamp=0) {
 
     cameraElevation = smooth(cameraElevationTarget, cameraElevation, Math.PI / 4 * delta_t / 1000);
 
-    orbit = new Orbit(225, theta, phi);
+    orbit = new Orbit(50, theta, phi);
     orbitMesh.updateOrbit(orbit);
+    mapView.orbit = orbit;
 
     let observationPoint = planet.step(delta_t / 1000),
 
@@ -160,17 +190,17 @@ function render(time_stamp=0) {
 
         lookDir = rotateTowards(inPlane, [0,0,1], cameraElevation);
 
-    console.log(lookDir);
-
     camera.position.copy(V3(observationPoint));
 
     camera.up.copy(up);
 
     camera.lookAt(V3(vec3.add(observationPoint, observationPoint, lookDir)));
 
-    phi -= speed * delta_t;
-
     renderer.render(scene, camera);
+
+    mapView.render();
+
+    phi -= speed * delta_t;
 }
 
 requestAnimationFrame(render);
