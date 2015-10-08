@@ -111,7 +111,7 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
 
         renderer.render(scene, camera);
 
-        mapView.render();
+        mapView.render(planet._angle);
 
         phi -= speed * delta_t;
     }
@@ -272,7 +272,7 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
 
             document.body.appendChild(canvas);
 
-            mapView.position = [500, 500, 250];
+            mapView.position = [500, 500, -250];
             mapView.lookAt([0, 0, 0]);
 
             renderer.autoClear = false;
@@ -287,7 +287,7 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
             gridMesh = new GridBox(500, 500, 500, 10);
 
             scene.add(orbitMesh);
-            scene.add(gridMesh);
+            //scene.add(gridMesh);
 
             theta = Math.PI / 16;
             phi = 0;
@@ -582,8 +582,10 @@ System.register("scene", ["lib/three.js", "retrograde"], function (_export) {
                     }
                 }, {
                     key: "render",
-                    value: function render() {
+                    value: function render(angle) {
                         this.renderer.setViewport(this.x, this.y, this.width, this.height);
+
+                        this._observer.setRotationFromEuler(new THREE.Euler(Math.PI / 2, 0, angle, 'ZYX'));
 
                         this.setupCamera();
 
@@ -593,8 +595,7 @@ System.register("scene", ["lib/three.js", "retrograde"], function (_export) {
                     key: "setupCamera",
                     value: function setupCamera() {
                         var bsphere = new THREE.Box3().setFromObject(this.scene).getBoundingSphere(),
-                            radius = Math.ceil(bsphere.radius / 20) * 20,
-                            center = bsphere.center,
+                            radius = Math.ceil(bsphere.radius / 10) * 10,
                             aspect = this.width / this.height,
                             left = undefined,
                             right = undefined,
@@ -602,17 +603,15 @@ System.register("scene", ["lib/three.js", "retrograde"], function (_export) {
                             bottom = undefined;
 
                         if (aspect < 1) {
-                            left = -radius + center.x, right = radius + center.x, top = radius / aspect + center.y, bottom = -radius / aspect + center.y;
+                            left = -radius, right = radius, top = radius / aspect, bottom = -radius / aspect;
                         } else {
-                            left = -radius * aspect + center.x, right = radius * aspect + center.x, top = radius + center.y, bottom = -radius + center.y;
+                            left = -radius * aspect, right = radius * aspect, top = radius, bottom = -radius;
                         }
 
                         this.camera.left = left;
                         this.camera.right = right;
                         this.camera.top = top;
                         this.camera.bottom = bottom;
-
-                        this.camera.lookAt(center);
 
                         this.camera.updateProjectionMatrix();
                     }
@@ -627,10 +626,15 @@ System.register("scene", ["lib/three.js", "retrograde"], function (_export) {
                 }, {
                     key: "observer",
                     set: function set(observer) {
+
+                        if (this._observer) this._observer.remove();
+
                         var sphereGeometry = new THREE.SphereGeometry(observer._radius, // radius
                         11, 11),
                             sphereMaterial = new THREE.MeshBasicMaterial({ wireframe: true, color: 0x000000 }),
                             mesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+                        this._observer = mesh;
 
                         this.scene.add(mesh);
                     }
