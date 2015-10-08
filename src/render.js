@@ -5,6 +5,8 @@ import {mat4, vec3} from "lib/gl-matrix.js";
 import transform from "transform";
 import {Orbit, OrbitMesh, Observer} from "retrograde";
 
+import {SliderTracker} from "input";
+
 class GridBox extends T.LineSegments {
     constructor(width, height, depth, divisions) {
         super(undefined, new T.LineBasicMaterial({color: 0xFFFFFF}));
@@ -126,7 +128,12 @@ let theta = Math.PI / 16,
     start,
     eye = [500, 0, 0],
     up = new T.Vector3(0, 0, -1),
-    planet = new Observer(25, Math.PI / 4, 0, -Math.PI / 5);
+    planet = new Observer(25, Math.PI / 4, 0, -Math.PI / 5),
+    cameraElevation = 0,
+    cameraElevationTarget = 0,
+    tracker = new SliderTracker("#elevation", function(elev) {
+        cameraElevationTarget = elev * Math.PI / 180;
+    });
 
 function render(time_stamp=0) {
     requestAnimationFrame(render);
@@ -140,16 +147,26 @@ function render(time_stamp=0) {
     let delta_t = time_stamp - start;
     start = time_stamp;
 
+    cameraElevation = smooth(cameraElevationTarget, cameraElevation, Math.PI / 4 * delta_t / 1000);
+
     orbit = new Orbit(225, theta, phi);
     orbitMesh.updateOrbit(orbit);
 
-    let observationPoint = planet.step(delta_t / 1000);
+    let observationPoint = planet.step(delta_t / 1000),
+
+        normal = planet.normal,
+
+        inPlane = [normal[0], normal[1], 0],
+
+        lookDir = rotateTowards(inPlane, [0,0,1], cameraElevation);
+
+    console.log(lookDir);
 
     camera.position.copy(V3(observationPoint));
-    //camera.position.copy(V3(eye));
+
     camera.up.copy(up);
-    camera.lookAt(V3(orbit.nearest(observationPoint)));
-    // camera.lookAt(V3([0,0,0]));
+
+    camera.lookAt(V3(vec3.add(observationPoint, observationPoint, lookDir)));
 
     phi -= speed * delta_t;
 
@@ -162,4 +179,26 @@ function V3(a, b, c) {
     if (arguments.length == 3)
         return new T.Vector3(a, b, c);
     return new T.Vector3(a[0], a[1], a[2]);
+}
+
+function rotateTowards(start, onto, angle) {
+    let axis = vec3.cross(vec3.create(), start, onto),
+
+        rotation = mat4.fromRotation(mat4.create(), angle, axis);
+
+    if (axis[0] == axis[1] && axis[1] == axis[2] && axis[0] == 0)
+        return start;
+
+    return vec3.transformMat4(axis, start, rotation);
+}
+
+function smooth(target, current, rate) {
+    let diff = target - current,
+        smoothed = current + rate * Math.sign(diff);
+
+    if (diff > 0 && smoothed > target || diff < 0 && smoothed < target) {
+        smoothed = target;
+    }
+
+    return smoothed;
 }
