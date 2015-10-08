@@ -6,7 +6,9 @@ export class SliderTracker {
         this._handler = () => {
             if (this.callback) {
                 let value = $(this.inputElement).attr("data-slider");
-                this.callback(value);
+
+                if (!isNaN(value))
+                    this.callback(value);
             }
         };
 
