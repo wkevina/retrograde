@@ -3,6 +3,8 @@ import {vec3, mat4} from "lib/gl-matrix.js";
 
 import {orientationMatrix} from "transform";
 
+import {SliderTracker} from "input";
+
 import THREE from "lib/three.js";
 
 export class Orbit {
@@ -101,6 +103,12 @@ export class Observer {
         this._elevation = elevation;
         this._azimuth = azimuth;
         this._speed = speed;
+
+        this._speed_tracker = new SliderTracker("#speed",
+                                                (s) => this._speed  = s * Math.PI / 180
+                                               );
+        this._angle = 0;
+        this._last_time = 0;
     }
 
     /**
@@ -118,6 +126,24 @@ export class Observer {
             );
 
         return vec3.rotateZ(p, p, [0,0,0], this._speed * t);
+    }
+
+    /**
+     * Returns location of observation point after t time has passed
+     *
+     * @param {number} delta_t Change in time in seconds
+     */
+    step(delta_t) {
+        let r_xy = this._radius * Math.cos(this._elevation),
+
+            p = vec3.fromValues(
+                r_xy * Math.cos(this._azimuth),
+                r_xy * Math.sin(this._azimuth),
+                this._radius * Math.sin(this._elevation)
+            );
+
+        this._angle += delta_t * this._speed;
+        return vec3.rotateZ(p, p, [0,0,0], this._angle);
     }
 };
 

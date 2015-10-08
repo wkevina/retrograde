@@ -143,7 +143,7 @@ function render(time_stamp=0) {
     orbit = new Orbit(225, theta, phi);
     orbitMesh.updateOrbit(orbit);
 
-    let observationPoint = planet.point(time_stamp / 1000);
+    let observationPoint = planet.step(delta_t / 1000);
 
     camera.position.copy(V3(observationPoint));
     //camera.position.copy(V3(eye));
