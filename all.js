@@ -1,12 +1,14 @@
-System.register("demo", [], function (_export) {
+System.register("demo", ["input"], function (_export) {
   "use strict";
 
-  var Demo;
+  var SliderTracker, Demo;
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   return {
-    setters: [],
+    setters: [function (_input) {
+      SliderTracker = _input.SliderTracker;
+    }],
     execute: function () {
       Demo = function Demo() {
         _classCallCheck(this, Demo);
@@ -19,24 +21,52 @@ System.register("input", [], function (_export) {
 
     var SliderTracker;
 
+    var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
     function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
     return {
         setters: [],
         execute: function () {
-            SliderTracker = function SliderTracker(selector, callback) {
-                _classCallCheck(this, SliderTracker);
+            SliderTracker = (function () {
+                function SliderTracker(selector, callback) {
+                    var _this = this;
 
-                this.rangeElement = document.querySelector(selector);
-                this.callback = callback;
-            };
+                    _classCallCheck(this, SliderTracker);
+
+                    this.inputElement = document.querySelector(selector);
+                    this.callback = callback;
+
+                    this._handler = function () {
+                        if (_this.callback) {
+                            var value = $(_this.inputElement).attr("data-slider");
+
+                            if (!isNaN(value)) _this.callback(value);
+                        }
+                    };
+
+                    $(this.inputElement).on("change.fndtn.slider", this._handler);
+                }
+
+                _createClass(SliderTracker, [{
+                    key: "remove",
+                    value: function remove() {
+                        $(this.inputElement).off("change.fndtn.slider", this._handler);
+                        this.inputElement = null;
+                    }
+                }]);
+
+                return SliderTracker;
+            })();
+
+            _export("SliderTracker", SliderTracker);
         }
     };
 });
-System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "retrograde"], function (_export) {
+System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "retrograde", "input"], function (_export) {
     "use strict";
 
-    var T, mat4, vec3, transform, Orbit, OrbitMesh, Observer, GridBox, scene, camera, renderer, canvas, resize, orbit, material, orbitMesh, gridMesh, theta, phi, speed, start, eye, up, planet;
+    var T, mat4, vec3, transform, Orbit, OrbitMesh, Observer, SliderTracker, GridBox, scene, camera, renderer, canvas, resize, orbit, material, orbitMesh, gridMesh, theta, phi, speed, start, eye, up, planet, cameraElevation, cameraElevationTarget, tracker;
 
     var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
@@ -58,16 +88,23 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
         var delta_t = time_stamp - start;
         start = time_stamp;
 
+        cameraElevation = smooth(cameraElevationTarget, cameraElevation, Math.PI / 4 * delta_t / 1000);
+
         orbit = new Orbit(225, theta, phi);
         orbitMesh.updateOrbit(orbit);
 
-        var observationPoint = planet.point(time_stamp / 1000);
+        var observationPoint = planet.step(delta_t / 1000),
+            normal = planet.normal,
+            inPlane = [normal[0], normal[1], 0],
+            lookDir = rotateTowards(inPlane, [0, 0, 1], cameraElevation);
+
+        console.log(lookDir);
 
         camera.position.copy(V3(observationPoint));
-        //camera.position.copy(V3(eye));
+
         camera.up.copy(up);
-        camera.lookAt(V3(orbit.nearest(observationPoint)));
-        // camera.lookAt(V3([0,0,0]));
+
+        camera.lookAt(V3(vec3.add(observationPoint, observationPoint, lookDir)));
 
         phi -= speed * delta_t;
 
@@ -77,6 +114,26 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
     function V3(a, b, c) {
         if (arguments.length == 3) return new T.Vector3(a, b, c);
         return new T.Vector3(a[0], a[1], a[2]);
+    }
+
+    function rotateTowards(start, onto, angle) {
+        var axis = vec3.cross(vec3.create(), start, onto),
+            rotation = mat4.fromRotation(mat4.create(), angle, axis);
+
+        if (axis[0] == axis[1] && axis[1] == axis[2] && axis[0] == 0) return start;
+
+        return vec3.transformMat4(axis, start, rotation);
+    }
+
+    function smooth(target, current, rate) {
+        var diff = target - current,
+            smoothed = current + rate * Math.sign(diff);
+
+        if (diff > 0 && smoothed > target || diff < 0 && smoothed < target) {
+            smoothed = target;
+        }
+
+        return smoothed;
     }
     return {
         setters: [function (_libThreeJs) {
@@ -90,6 +147,8 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
             Orbit = _retrograde.Orbit;
             OrbitMesh = _retrograde.OrbitMesh;
             Observer = _retrograde.Observer;
+        }, function (_input) {
+            SliderTracker = _input.SliderTracker;
         }],
         execute: function () {
             GridBox = (function (_T$LineSegments) {
@@ -210,14 +269,19 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
             eye = [500, 0, 0];
             up = new T.Vector3(0, 0, -1);
             planet = new Observer(25, Math.PI / 4, 0, -Math.PI / 5);
+            cameraElevation = 0;
+            cameraElevationTarget = 0;
+            tracker = new SliderTracker("#elevation", function (elev) {
+                cameraElevationTarget = elev * Math.PI / 180;
+            });
             requestAnimationFrame(render);
         }
     };
 });
-System.register("retrograde", ["lib/gl-matrix.js", "transform", "lib/three.js"], function (_export) {
+System.register("retrograde", ["lib/gl-matrix.js", "transform", "input", "lib/three.js"], function (_export) {
     "use strict";
 
-    var vec3, mat4, orientationMatrix, THREE, Orbit, OrbitMesh, Observer;
+    var vec3, mat4, orientationMatrix, SliderTracker, THREE, Orbit, OrbitMesh, Observer;
 
     var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
@@ -243,6 +307,8 @@ System.register("retrograde", ["lib/gl-matrix.js", "transform", "lib/three.js"],
             mat4 = _libGlMatrixJs.mat4;
         }, function (_transform) {
             orientationMatrix = _transform.orientationMatrix;
+        }, function (_input) {
+            SliderTracker = _input.SliderTracker;
         }, function (_libThreeJs) {
             THREE = _libThreeJs["default"];
         }],
@@ -364,12 +430,20 @@ System.register("retrograde", ["lib/gl-matrix.js", "transform", "lib/three.js"],
 
             Observer = (function () {
                 function Observer(radius, elevation, azimuth, speed) {
+                    var _this = this;
+
                     _classCallCheck(this, Observer);
 
                     this._radius = radius;
                     this._elevation = elevation;
                     this._azimuth = azimuth;
                     this._speed = speed;
+
+                    this._speed_tracker = new SliderTracker("#speed", function (s) {
+                        return _this._speed = s * Math.PI / 180;
+                    });
+                    this._angle = 0;
+                    this._last_time = 0;
                 }
 
                 /**
@@ -385,6 +459,38 @@ System.register("retrograde", ["lib/gl-matrix.js", "transform", "lib/three.js"],
                             p = vec3.fromValues(r_xy * Math.cos(this._azimuth), r_xy * Math.sin(this._azimuth), this._radius * Math.sin(this._elevation));
 
                         return vec3.rotateZ(p, p, [0, 0, 0], this._speed * t);
+                    }
+
+                    /**
+                     * Returns location of observation point after t time has passed
+                     *
+                     * @param {number} delta_t Change in time in seconds
+                     */
+                }, {
+                    key: "step",
+                    value: function step(delta_t) {
+                        var r_xy = this._radius * Math.cos(this._elevation),
+                            p = vec3.fromValues(r_xy * Math.cos(this._azimuth), r_xy * Math.sin(this._azimuth), this._radius * Math.sin(this._elevation));
+
+                        this._angle += delta_t * this._speed;
+
+                        this._lastStep = vec3.rotateZ(p, p, [0, 0, 0], this._angle);
+
+                        return this._lastStep;
+                    }
+
+                    /**
+                     * Returns unit vector in the direction from the origin of the observer
+                     * to the observation point
+                     *
+                     * @return {vec3} Normal vector
+                     */
+                }, {
+                    key: "normal",
+                    get: function get() {
+                        if (!this._lastStep) this.step(0);
+
+                        return vec3.normalize(vec3.create(), this._lastStep);
                     }
                 }]);
 
