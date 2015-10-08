@@ -143,7 +143,23 @@ export class Observer {
             );
 
         this._angle += delta_t * this._speed;
-        return vec3.rotateZ(p, p, [0,0,0], this._angle);
+
+        this._lastStep = vec3.rotateZ(p, p, [0,0,0], this._angle);
+
+        return this._lastStep;
+    }
+
+    /**
+     * Returns unit vector in the direction from the origin of the observer
+     * to the observation point
+     *
+     * @return {vec3} Normal vector
+     */
+    get normal() {
+        if (!this._lastStep)
+            this.step(0);
+
+        return vec3.normalize(vec3.create(), this._lastStep);
     }
 };
 
