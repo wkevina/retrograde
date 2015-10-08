@@ -76,7 +76,7 @@ gulp.task('watchJS', function() {
 
 gulp.task('watchStatic', function() {
     // return gulp.watch([dir.source, dir.lib, dir.index], ['build-dev']);
-    return gulp.watch([dir.ignore, dir.lib, dir.index, dir.css], ['copy-static']);
+    return gulp.watch([dir.ignore, dir.lib, dir.index, dir.css], ['bower']);
 });
 
 gulp.task('connect', function() {
@@ -103,7 +103,7 @@ gulp.task('default', function(cb) {
     runSeq(['build-dev', 'watchStatic', 'watchJS', 'connect'], cb);
 });
 
-gulp.task('bower', function() {
+gulp.task('bower', ['copy-static'], function() {
     return gulp.src(dir.build + '/index.html')
 	.pipe(wiredep({
 	    cwd: '.',
