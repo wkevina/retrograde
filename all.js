@@ -63,10 +63,10 @@ System.register("input", [], function (_export) {
         }
     };
 });
-System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "retrograde", "input"], function (_export) {
+System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "retrograde", "input", "scene"], function (_export) {
     "use strict";
 
-    var T, mat4, vec3, transform, Orbit, OrbitMesh, Observer, SliderTracker, GridBox, scene, camera, renderer, canvas, resize, orbit, material, orbitMesh, gridMesh, theta, phi, speed, start, eye, up, planet, cameraElevation, cameraElevationTarget, tracker;
+    var T, mat4, vec3, transform, Orbit, OrbitMesh, Observer, SliderTracker, MapView, GridBox, scene, camera, renderer, canvas, mapView, resize, resetViewport, orbit, material, orbitMesh, gridMesh, theta, phi, speed, start, eye, up, planet, cameraElevation, cameraElevationTarget, tracker;
 
     var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
@@ -81,6 +81,10 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
 
         resize();
 
+        renderer.clear();
+
+        resetViewport();
+
         if (!start) {
             start = time_stamp;
         }
@@ -90,15 +94,14 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
 
         cameraElevation = smooth(cameraElevationTarget, cameraElevation, Math.PI / 4 * delta_t / 1000);
 
-        orbit = new Orbit(225, theta, phi);
+        orbit = new Orbit(50, theta, phi);
         orbitMesh.updateOrbit(orbit);
+        mapView.orbit = orbit;
 
         var observationPoint = planet.step(delta_t / 1000),
             normal = planet.normal,
             inPlane = [normal[0], normal[1], 0],
             lookDir = rotateTowards(inPlane, [0, 0, 1], cameraElevation);
-
-        console.log(lookDir);
 
         camera.position.copy(V3(observationPoint));
 
@@ -106,9 +109,11 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
 
         camera.lookAt(V3(vec3.add(observationPoint, observationPoint, lookDir)));
 
-        phi -= speed * delta_t;
-
         renderer.render(scene, camera);
+
+        mapView.render();
+
+        phi -= speed * delta_t;
     }
 
     function V3(a, b, c) {
@@ -149,6 +154,8 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
             Observer = _retrograde.Observer;
         }, function (_input) {
             SliderTracker = _input.SliderTracker;
+        }, function (_scene) {
+            MapView = _scene.MapView;
         }],
         execute: function () {
             GridBox = (function (_T$LineSegments) {
@@ -222,8 +229,7 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
             camera = new T.PerspectiveCamera(Math.PI / 4 * 360, 1, 0.1, 100000);
             renderer = new T.WebGLRenderer({ antialias: true });
             canvas = renderer.domElement;
-
-            document.body.appendChild(canvas);
+            mapView = new MapView(renderer, 750, 750, 0, 0, 200, 200);
 
             resize = function resize() {
 
@@ -234,6 +240,13 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
                     resize.old_w = 0;
                     resize.old_h = 0;
                 }
+
+                var controlDim = Math.min(WIDTH, HEIGHT) * 0.2;
+
+                mapView.x = 0;
+                mapView.y = HEIGHT - controlDim;
+                mapView.width = controlDim;
+                mapView.height = controlDim;
 
                 if (WIDTH != resize.old_w || HEIGHT != resize.old_h) {
 
@@ -249,6 +262,20 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
                 resize.old_w = WIDTH;
                 resize.old_h = HEIGHT;
             };
+
+            resetViewport = function resetViewport() {
+                var WIDTH = canvas.clientWidth,
+                    HEIGHT = canvas.clientHeight;
+
+                renderer.setViewport(0, 0, WIDTH, HEIGHT);
+            };
+
+            document.body.appendChild(canvas);
+
+            mapView.position = [500, 500, 250];
+            mapView.lookAt([0, 0, 0]);
+
+            renderer.autoClear = false;
 
             renderer.setClearColor(0xFF0000);
 
@@ -274,7 +301,9 @@ System.register("render", ["lib/three.js", "lib/gl-matrix.js", "transform", "ret
             tracker = new SliderTracker("#elevation", function (elev) {
                 cameraElevationTarget = elev * Math.PI / 180;
             });
-            requestAnimationFrame(render);
+
+            mapView.observer = planet;
+            mapView.orbit = orbit;requestAnimationFrame(render);
         }
     };
 });
@@ -498,6 +527,130 @@ System.register("retrograde", ["lib/gl-matrix.js", "transform", "input", "lib/th
             })();
 
             _export("Observer", Observer);
+
+            ;
+        }
+    };
+});
+System.register("scene", ["lib/three.js", "retrograde"], function (_export) {
+
+    /**
+     * Renders a mini-map view of the scene
+     *
+     * @param {THREE.WebGLRenderer} renderer Rendering context to use
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     */
+    "use strict";
+
+    var THREE, OrbitMesh, MapView;
+
+    var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+    function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+    return {
+        setters: [function (_libThreeJs) {
+            THREE = _libThreeJs["default"];
+        }, function (_retrograde) {
+            OrbitMesh = _retrograde.OrbitMesh;
+        }],
+        execute: function () {
+            MapView = (function () {
+                function MapView(renderer, scene_width, scene_height, x, y, width, height) {
+                    _classCallCheck(this, MapView);
+
+                    this.renderer = renderer;
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+
+                    this.scene = new THREE.Scene();
+
+                    this.camera = new THREE.OrthographicCamera(-scene_width / 2, scene_width / 2, scene_height / 2, -scene_height / 2);
+
+                    this.camera.up.set(0, 0, -1);
+                }
+
+                _createClass(MapView, [{
+                    key: "lookAt",
+                    value: function lookAt(vec) {
+                        if (vec.x) this.camera.lookAt(vec);else this.camera.lookAt({ x: vec[0], y: vec[1], z: vec[2] });
+                    }
+                }, {
+                    key: "render",
+                    value: function render() {
+                        this.renderer.setViewport(this.x, this.y, this.width, this.height);
+
+                        this.setupCamera();
+
+                        this.renderer.render(this.scene, this.camera);
+                    }
+                }, {
+                    key: "setupCamera",
+                    value: function setupCamera() {
+                        var bsphere = new THREE.Box3().setFromObject(this.scene).getBoundingSphere(),
+                            radius = Math.ceil(bsphere.radius / 20) * 20,
+                            center = bsphere.center,
+                            aspect = this.width / this.height,
+                            left = undefined,
+                            right = undefined,
+                            top = undefined,
+                            bottom = undefined;
+
+                        if (aspect < 1) {
+                            left = -radius + center.x, right = radius + center.x, top = radius / aspect + center.y, bottom = -radius / aspect + center.y;
+                        } else {
+                            left = -radius * aspect + center.x, right = radius * aspect + center.x, top = radius + center.y, bottom = -radius + center.y;
+                        }
+
+                        this.camera.left = left;
+                        this.camera.right = right;
+                        this.camera.top = top;
+                        this.camera.bottom = bottom;
+
+                        this.camera.lookAt(center);
+
+                        this.camera.updateProjectionMatrix();
+                    }
+                }, {
+                    key: "position",
+                    get: function get() {
+                        return this.camera.position;
+                    },
+                    set: function set(posVec) {
+                        if (posVec.x) this.camera.position.copy(posVec);else this.camera.position.set(posVec[0], posVec[1], posVec[2]);
+                    }
+                }, {
+                    key: "observer",
+                    set: function set(observer) {
+                        var sphereGeometry = new THREE.SphereGeometry(observer._radius, // radius
+                        11, 11),
+                            sphereMaterial = new THREE.MeshBasicMaterial({ wireframe: true, color: 0x000000 }),
+                            mesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+                        this.scene.add(mesh);
+                    }
+                }, {
+                    key: "orbit",
+                    set: function set(orbit) {
+                        if (this._orbitMesh) {
+                            this._orbitMesh.updateOrbit(orbit);
+                        } else {
+                            this._orbitMesh = new OrbitMesh(orbit, new THREE.LineBasicMaterial());
+
+                            this.scene.add(this._orbitMesh);
+                        }
+                    }
+                }]);
+
+                return MapView;
+            })();
+
+            _export("MapView", MapView);
 
             ;
         }
